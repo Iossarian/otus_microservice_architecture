@@ -1,20 +1,183 @@
 # Описание сервисов
 
 ## - API Gateway - точка входа и агрегатор.
-
+### Создание заказа
+```
+POST /orders
+Headers:
+Authorization: Bearer <JWT>
+Body:
+{
+    "items": [
+        {"id": "item_id", "quantity": 1}
+    ],
+    "promo_code": "PROMO123",
+    "delivery": {
+        "type": "pickup|courier",
+        "address": "optional_for_courier",
+        "store_id": "optional_for_pickup"
+    },
+    "city_id": "city_uuid"
+}
+Response:
+{
+    "order_id": "uuid",
+    "status": "created"
+}
+```
+### Обновление способа оплаты заказа
+```
+PATCH /orders/{order_id}/payment
+Body:
+{
+    "type": "cash|online|card_on_delivery|cash_on_delivery",
+}
+Response:
+{
+    "status": "updated"
+}
+```
 ## - User - хранит информацию о клиентах.
+### Получение информации о пользователе:
+```
+POST /auth
+ Body:
+{
+"token": "jwt-token"
+}
+Response:
+{
+"user_id": "uuid",
+}
+```
 
 ## - Order - сервис заказов. Отвечает за агрегацию и валидацию данных заказа, обновление статусов заказа.
 
+### Создание заказа:
+```
+POST /orders
+Body:
+{
+    "items": [
+        {"id": "item_id", "quantity": 1}
+    ],
+    "promo_code": "PROMO123",
+    "delivery": {
+        "type": "pickup|courier",
+        "address": "optional_for_courier",
+        "store_id": "optional_for_pickup"
+    },
+    "city_id": "city_uuid",
+    "user_id": "uuid"
+}
+Response:
+{
+    "order_id": "uuid",
+    "status": "created"
+}
+```
+### Обновление способа оплаты заказа:
+```
+PATCH /orders/{order_id}/payment
+Body:
+{
+    "type": "cash|online|card_on_delivery|cash_on_delivery",
+}
+Response:
+{
+    "status": "updated"
+}
+```
+### Получение информации о заказе:
+```
+GET /orders/{order_id}
+Response:
+{
+    "order_id": "uuid",
+    "status": "not_paid|paid|being_delivered|delivered",
+    "payment_status": "not_paid|paid",
+    "items": [
+        {"id": "item_id", "quantity": 1, "price": 100}
+    ],
+    "delivery": {
+        "type": "pickup|courier",
+        "address": "optional_for_courier",
+        "store_id": "optional_for_pickup"
+    }
+}
+```
+
 ## - Store - сервис-агрегатор, инкапсулирующий логику меню, стоимости товаров и промо.
+
+```
+### Подтверждение заказа:
+
+POST /validation
+Body:
+{
+    "city_id": "city_uuid",
+    "items": [
+        {"id": "item_id", "quantity": 1}
+    ],
+    "promo_code": "PROMO123"
+}
+Response:
+{
+    "is_valid": true,
+    "total_price": 1000,
+    "estimated_ready_time": "2024-11-26T12:00:00Z"
+}
+```
 
 ## - Delivery - сервис курьерской доставки. Отвечает за координацию курьеров и верификацию доступности доставки.
 
+```
+### Проверка доступности доставки:
+
+POST /availability
+Body:
+{
+    "address": "delivery address",
+    "city_id": "city_uuid"
+}
+Response:
+{
+    "is_available": true,
+    "estimated_time": "2024-11-26T14:00:00Z"
+}
+```
+
 ## - Payment - сервис оплат. Инкапсулирует логику оплаты и походов во внешние сервисы оплат.
+
+```
+### Создание платежа:
+
+POST /payments
+Body:
+{
+    "order_id": "uuid",
+    "amount": 1000,
+    "payment_method": "online|cash_on_delivery|card_on_delivery"
+}
+Response:
+{
+    "payment_id": "uuid",
+    "status": "success|failure"
+}
+
+### Проверка статуса платежа:
+
+GET /payments/{payment_id}
+Response:
+{
+    "payment_id": "uuid",
+    "status": "success|failure|processing"
+}
+```
 
 # Пользовательский сценарий оформления заказа
 
-### 1. API Gateway отправляет запрос с JWT из запроса в сервис Buyer
+### 1. API Gateway отправляет запрос с JWT из запроса в сервис User
 
 ### 2. API Gateway формирует запрос в сервис Order, состоящий из:
 
@@ -32,7 +195,7 @@
 
 ### 5. Сервис Order принимает ответ валидации заказа. Если ответ положительный, то, в зависимости от выбранного типа доставки, либо сразу сохраняем заказ в БД для самовывоза со статусом “not_paid” и датой готовности, либо, если выбрана курьерская доставка, верифицирует возможность курьерской доставки из сервиса Delivery.
 
-### 6. После создания заказа, Order возвращает 200 ОК и номер заказа. На клиентской стороне даем возможность оплатить заказ.
+### 6. После создания заказа, Order возвращает 201 ОК и номер заказа. На клиентской стороне даем возможность оплатить заказ.
 
 ### 7. Клиент отправляет запрос с номером заказа и способом оплаты в сервис Order.
 
