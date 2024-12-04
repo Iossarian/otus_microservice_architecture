@@ -27,10 +27,22 @@ Response:
 ```
 ### Обновление способа оплаты заказа
 ```
-PATCH /orders/{order_id}/payment
+PATCH /orders/{order_id}/payment-type
 Body:
 {
     "type": "cash|online|card_on_delivery|cash_on_delivery",
+}
+Response:
+{
+    "status": "updated"
+}
+```
+### Обновление статуса оплаты заказа
+```
+PATCH /orders/{order_id}/payment-status
+Body:
+{
+    "type": "paid|not_paid",
 }
 Response:
 {
