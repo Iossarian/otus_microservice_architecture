@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otusapp-deployment
+  labels:
+    app: otusapp
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 2
+  replicas: 3
+  selector:
+    matchLabels:
+      app: otusapp
+  template:
+    metadata:
+      labels:
+        app: otusapp
+    spec:
+      containers:
+        - name: otusapp-container
+          image: iossar/hw02:v2
+          ports:
+            - name: web
+              containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 30

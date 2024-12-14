@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otusapp-ingress
+spec:
+  ingressClassName: "nginx"
+  rules:
+    - host: arch.homework
+      http:
+        paths:
+          - path: /health
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: otusapp-service
+                port:
+                  number: 8000
