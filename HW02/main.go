@@ -13,7 +13,7 @@ func main() {
 }
 
 func server() {
-	http.HandleFunc("/health/", health)
+	http.HandleFunc("/health", health)
 
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
@@ -23,7 +23,7 @@ func server() {
 	}
 }
 
-func health(w http.ResponseWriter, req *http.Request) {
+func health(w http.ResponseWriter, _ *http.Request) {
 	fmt.Println("processing health request")
 
 	response, err := json.Marshal(map[string]string{"status": "OK"})
