@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: iossar/hw04
+  pullPolicy: IfNotPresent
+  tag: v1.1
+
+service:
+  name: go-rest-api
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  name: go-rest-api-ingress
+  annotations: {}
+  path: /arch.homework/
+
+database:
+  user: user
+  password: password
+  dbname: otus
+  host: postgres
+  port: 5432
