@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: iossar/hw05
+  pullPolicy: IfNotPresent
+  tag: v1.0
+
+service:
+  name: go-rest-api
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  name: go-rest-api-ingress
+  annotations: {}
+  path: /arch.homework/
+
+database:
+  user: user
+  password: password
+  dbname: otus
+  host: postgres
+  port: 5432
+
+global:
+  podSecurityPolicy:
+    enabled: false
+
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: default
+    selector:
+      matchLabels:
+        app: go-rest-api
+  alertmanager:
+    enabled: true
+  server:
+    podSecurityPolicy:
+      enabled: false
+
+grafana:
+  enabled: true
+  adminPassword: "admin"
+  service:
+    type: ClusterIP
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-server.default.svc.cluster.local
+  podSecurityPolicy:
+    enabled: false
+
+serviceMonitor:
+  enabled: true
+  namespace: default
+  selector:
+    matchLabels:
+      app: go-rest-api
+
+
