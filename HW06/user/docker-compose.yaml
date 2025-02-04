@@ -1,0 +1,34 @@
+version: '3.1'
+
+services:
+  user:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: user
+    restart: always
+    ports:
+      - '8000:8000'
+    environment:
+      - DB_HOST=user-postgres
+      - DB_PORT=5432
+      - DB_NAME=otus
+      - DB_USER=user
+      - DB_PASSWORD=password
+    depends_on:
+      - user-postgres
+  user-postgres:
+    image: postgres:15-alpine
+    container_name: user-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: otus
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+volumes:
+  postgres_data:

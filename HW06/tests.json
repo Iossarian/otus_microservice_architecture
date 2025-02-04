@@ -1,0 +1,519 @@
+{
+  "info": {
+    "_postman_id": "d35d8b90-765c-4060-8f29-8bbe71dd00a2",
+    "name": "Otus api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12029266",
+    "_collection_link": "https://galactic-water-517566.postman.co/workspace/VUE-LISTINGS~6367ddf2-5e9e-4759-ad5f-cdaaf94c89ca/collection/12029266-d35d8b90-765c-4060-8f29-8bbe71dd00a2?action=share&source=collection_link&creator=12029266"
+  },
+  "item": [
+    {
+      "name": "register",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Генерация случайных данных",
+              "const randomUsername = `user_${Math.floor(Math.random() * 10000)}`;",
+              "const randomPassword = `pass_${Math.random().toString(36).substring(2, 10)}`;",
+              "",
+              "// Сохраняем данные в переменные окружения",
+              "pm.environment.set(\"username\", randomUsername);",
+              "pm.environment.set(\"password\", randomPassword);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response has user ID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "// Сохраняем user_id для следующих тестов",
+              "pm.environment.set(\"user_id\", pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/auth/register",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Генерация случайных данных",
+              "const randomName = `name_${Math.floor(Math.random() * 10000)}`;",
+              "",
+              "// Сохраняем данные в переменные окружения",
+              "pm.environment.set(\"random_name\", randomName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response has user ID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-User-Id",
+            "value": "{{user_id}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"{{random_name}}\",\"age\": 100\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/create-user",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "create-user"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Проверка успешного логина",
+              "pm.test(\"Login successful\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Сохраняем session_id из Set-Cookie",
+              "var cookies = pm.response.headers.get('Set-Cookie');",
+              "var sessionIdMatch = cookies.match(/session_id=([^;]+)/);",
+              "if (sessionIdMatch) {",
+              "    pm.environment.set(\"session_id\", sessionIdMatch[1]);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/auth/login",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Проверка получения профиля",
+              "pm.test(\"Profile fetched\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Проверка данных профиля",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Profile has correct username\", function () {",
+                " const randomName = pm.environment.get(\"random_name\");",
+              "    pm.expect(jsonData.name).to.eql(randomName);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "session_id={{session_id}}" }
+        ],
+        "url": {
+          "raw": "http://arch.homework/users/{{user_id}}",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Put",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Генерация случайных данных",
+              "const newName = `new_name_${Math.floor(Math.random() * 10000)}`;",
+              "",
+              "// Сохраняем данные в переменные окружения",
+              "pm.environment.set(\"new_name\", newName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Cookie", "value": "session_id={{session_id}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{new_name}}\",\"age\": 30\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/users/{{user_id}}",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Проверка получения профиля",
+              "pm.test(\"Profile fetched\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Проверка данных профиля",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Profile has correct username\", function () {",
+              " const newName = pm.environment.get(\"new_name\");",
+              "    pm.expect(jsonData.name).to.eql(newName);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "session_id={{session_id}}" }
+        ],
+        "url": {
+          "raw": "http://arch.homework/users/{{user_id}}",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "logout",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "session_id={{session_id}}" }
+        ],
+        "url": {
+          "raw": "http://arch.homework/auth/logout",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "register a new user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Генерация случайных данных",
+              "const newRandomUsername = `user_${Math.floor(Math.random() * 10000)}`;",
+              "const newRandomPassword = `pass_${Math.random().toString(36).substring(2, 10)}`;",
+              "",
+              "// Сохраняем данные в переменные окружения",
+              "pm.environment.set(\"new_username\", newRandomUsername);",
+              "pm.environment.set(\"new_password\", newRandomPassword);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response has user ID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "",
+              "// Сохраняем user_id для следующих тестов",
+              "pm.environment.set(\"new_user_id\", pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{new_username}}\",\n    \"password\": \"{{new_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/auth/register",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login a new user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Проверка успешного логина",
+              "pm.test(\"Login successful\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Сохраняем session_id из Set-Cookie",
+              "var cookies = pm.response.headers.get('Set-Cookie');",
+              "var sessionIdMatch = cookies.match(/session_id=([^;]+)/);",
+              "if (sessionIdMatch) {",
+              "    pm.environment.set(\"new_session_id\", sessionIdMatch[1]);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{new_username}}\",\n    \"password\": \"{{new_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://arch.homework/auth/login",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get first user",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Проверка получения профиля",
+              "pm.test(\"Profile was not fetched\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "session_id={{new_session_id}}" }
+        ],
+        "url": {
+          "raw": "http://arch.homework/users/{{user_id}}",
+          "protocol": "http",
+          "host": [
+            "arch",
+            "homework"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

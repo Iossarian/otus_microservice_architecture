@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: {{ .Values.user.replicaCount }}
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+        - name: migrate
+          image: "{{ .Values.user.image.repository }}:{{ .Values.user.image.tag }}"
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c", "/app migrate up"]
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-db-credentials
+                  key: password
+      containers:
+        - name: user-service
+          image: "{{ .Values.user.image.repository }}:{{ .Values.user.image.tag }}"
+          imagePullPolicy: Always
+          command: ["/app", "rest"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-db-credentials
+                  key: password

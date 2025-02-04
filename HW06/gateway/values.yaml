@@ -1,0 +1,31 @@
+# user service
+user:
+  image:
+    repository: iossar/user06
+    tag: v7.0
+  replicaCount: 1
+
+  database:
+    name: userdb
+    user: user
+    password: userpass
+    host: user-postgres
+    port: 5432
+
+# auth service
+auth:
+  image:
+    repository: iossar/auth06
+    tag: v13.0
+  replicaCount: 1
+
+  database:
+    name: authdb
+    user: auth
+    password: authpass
+    host: auth-postgres
+    port: 5432
+
+ingress:
+  enabled: true
+  host: arch.homework
