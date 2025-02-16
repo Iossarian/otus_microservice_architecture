@@ -1,0 +1,66 @@
+# billing service
+billing:
+  image:
+    repository: iossar/billing07
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: billingdb
+    user: user
+    password: password
+    host: billing-postgres
+    port: 5432
+
+# gateway service
+gateway:
+  image:
+    repository: iossar/gateway07
+    tag: v1.0
+  replicaCount: 1
+
+# notification service
+notification:
+  image:
+    repository: iossar/notification07
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: notificationdb
+    user: user
+    password: password
+    host: notification-postgres
+    port: 5432
+
+# order service
+order:
+  image:
+    repository: iossar/order07
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: orderdb
+    user: user
+    password: password
+    host: order-postgres
+    port: 5432
+
+# user service
+user:
+  image:
+    repository: iossar/user07
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: userdb
+    user: user
+    password: password
+    host: user-postgres
+    port: 5432
+
+ingress:
+  enabled: true
+  host: arch.homework
