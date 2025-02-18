@@ -1,0 +1,333 @@
+version: '3.1'
+
+services:
+  # Gateway
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    restart: always
+    environment:
+      - HTTP_PORT=8000
+      - USER_BASE_URL=http://user-service:8001
+      - BILLING_BASE_URL=http://billing-service:8003
+      - ORDER_BASE_URL=http://order-service:8004
+      - NOTIFICATION_BASE_URL=http://notification-service:8005
+    ports:
+      - '8000:8000'
+    command: [ "/app", "rest" ]
+
+  # Notification
+  notification-service:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: always
+    environment:
+      - HTTP_PORT=8005
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=notification-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=notificationdb
+      - KAFKA_BROKER=kafka:29092
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+      notification-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  notification-consumer:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    container_name: notification-consumer
+    restart: always
+    environment:
+      - HTTP_PORT=8006
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=notification-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=notificationdb
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_TOPIC=user-registered
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      notification-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "consume", "order-created" ]
+  notification-migration:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    container_name: notification-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=notification-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=notificationdb
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  notification-postgres:
+    image: postgres:15-alpine
+    container_name: notification-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5435:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d notificationdb" ]
+      interval: 5s
+      retries: 5
+
+
+  # Order
+  order-service:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: order-service
+    restart: always
+    environment:
+      - HTTP_PORT=8004
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=order-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=orderdb
+      - KAFKA_BROKER=kafka:29092
+      - BILLING_BASE_URL=http://billing-service:8003
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+      order-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  order-migration:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: order-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=order-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=orderdb
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  order-postgres:
+    image: postgres:15-alpine
+    container_name: order-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - order_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5434:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d orderdb" ]
+      interval: 5s
+      retries: 5
+
+  # Billing
+  billing-service:
+    build:
+      context: ./billing
+      dockerfile: Dockerfile
+    container_name: billing-service
+    restart: always
+    environment:
+      - HTTP_PORT=8003
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=billing-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=billingdb
+      - KAFKA_BROKER=kafka:29092
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+      billing-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  billing-consumer:
+    build:
+      context: ./billing
+      dockerfile: Dockerfile
+    container_name: billing-consumer
+    restart: always
+    environment:
+      - HTTP_PORT=8002
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=billing-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=billingdb
+      - KAFKA_BROKER=kafka:29092
+      - KAFKA_TOPIC=billing
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      billing-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "consume", "user-registered" ]
+  billing-migration:
+    build:
+      context: ./billing
+      dockerfile: Dockerfile
+    container_name: billing-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=billing-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=billingdb
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  billing-postgres:
+    image: postgres:15-alpine
+    container_name: billing-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: billingdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - billing_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d billingdb" ]
+      interval: 5s
+      retries: 5
+
+  # User
+  user-service:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: always
+    ports:
+      - '8001:8001'
+    environment:
+      - HTTP_PORT=8001
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=user-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=userdb
+    depends_on:
+      user-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      user-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  user-migration:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    container_name: user-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=user-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=userdb
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  user-postgres:
+    image: postgres:15-alpine
+    container_name: user-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d userdb" ]
+      interval: 5s
+      retries: 5
+
+
+  # Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '22181:2181'
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - '29092:29092'
+    hostname: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    ports:
+      - '8090:8080'
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - kafka
+      - zookeeper
+
+volumes:
+  notification_postgres_data:
+  order_postgres_data:
+  billing_postgres_data:
+  user_postgres_data:

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: notification-postgres
+spec:
+  serviceName: "notification-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-postgres
+  template:
+    metadata:
+      labels:
+        app: notification-postgres
+    spec:
+      containers:
+        - name: notification-postgres
+          image: "postgres:13"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.notification.database.name }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.notification.database.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.notification.database.password }}"
+          volumeMounts:
+            - name: notification-postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: notification-postgres-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi

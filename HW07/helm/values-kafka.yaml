@@ -1,0 +1,20 @@
+global:
+  storageClass: ""
+
+zookeeper:
+  enabled: false
+
+controller:
+  enabled: true
+  replicaCount: 1
+
+brokers:
+  replicaCount: 1
+
+listeners:
+  client:
+    protocol: PLAINTEXT
+  interbroker:
+    protocol: PLAINTEXT
+  controller:
+    protocol: PLAINTEXT

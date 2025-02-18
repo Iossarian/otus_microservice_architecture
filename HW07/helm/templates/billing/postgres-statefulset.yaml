@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: billing-postgres
+spec:
+  serviceName: "billing-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-postgres
+  template:
+    metadata:
+      labels:
+        app: billing-postgres
+    spec:
+      containers:
+        - name: billing-postgres
+          image: "postgres:13"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.billing.database.name }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.billing.database.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.billing.database.password }}"
+          volumeMounts:
+            - name: billing-postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: billing-postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
