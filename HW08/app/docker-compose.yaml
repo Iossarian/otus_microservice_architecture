@@ -1,0 +1,206 @@
+version: '3.1'
+
+services:
+  order-service:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: order-service
+    restart: always
+    environment:
+      - HTTP_PORT=8000
+      - ORCHESTRATOR_BASE_URL=http://orchestrator:8001
+      - BILLING_BASE_URL=http://billing-service:8002
+      - WAREHOUSE_BASE_URL=http://warehouse-service:8003
+      - DELIVERY_BASE_URL=http://delivery-service:8004
+    ports:
+      - '8000:8000'
+    command: [ "/app", "rest" ]
+
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: orchestrator
+    restart: always
+    environment:
+      - HTTP_PORT=8001
+      - BILLING_BASE_URL=http://billing-service:8002
+      - WAREHOUSE_BASE_URL=http://warehouse-service:8003
+      - DELIVERY_BASE_URL=http://delivery-service:8004
+    ports:
+      - '8001:8001'
+    command: [ "/app", "rest" ]
+
+  # Billing
+  billing-service:
+    build:
+      context: ./billing
+      dockerfile: Dockerfile
+    container_name: billing-service
+    restart: always
+    environment:
+      - HTTP_PORT=8002
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=billing-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=billingdb
+    ports:
+      - '8002:8002'
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+      billing-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  billing-migration:
+    build:
+      context: ./billing
+      dockerfile: Dockerfile
+    container_name: billing-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=billing-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=billingdb
+    depends_on:
+      billing-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  billing-postgres:
+    image: postgres:15-alpine
+    container_name: billing-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: billingdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - billing_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d billingdb" ]
+      interval: 5s
+      retries: 5
+
+  # Warehouse
+  warehouse-service:
+    build:
+      context: ./warehouse
+      dockerfile: Dockerfile
+    container_name: warehouse-service
+    restart: always
+    environment:
+      - HTTP_PORT=8003
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=warehouse-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=warehousedb
+    ports:
+      - '8003:8003'
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+      warehouse-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  warehouse-migration:
+    build:
+      context: ./warehouse
+      dockerfile: Dockerfile
+    container_name: warehouse-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=warehouse-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=warehousedb
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  warehouse-postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: warehousedb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - warehouse_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d warehousedb" ]
+      interval: 5s
+      retries: 5
+
+  # Delivery
+  delivery-service:
+    build:
+      context: ./delivery
+      dockerfile: Dockerfile
+    container_name: delivery-service
+    restart: always
+    environment:
+      - HTTP_PORT=8004
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=delivery-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=deliverydb
+    ports:
+      - '8004:8004'
+    depends_on:
+      delivery-postgres:
+        condition: service_healthy
+      delivery-migration:
+        condition: service_completed_successfully
+    command: [ "/app", "rest" ]
+  delivery-migration:
+    build:
+      context: ./delivery
+      dockerfile: Dockerfile
+    container_name: delivery-migration
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=delivery-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=deliverydb
+    depends_on:
+      delivery-postgres:
+        condition: service_healthy
+    command: [ "/app", "migrate", "up" ]
+  delivery-postgres:
+    image: postgres:15-alpine
+    container_name: delivery-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: deliverydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - delivery_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5434:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d deliverydb" ]
+      interval: 5s
+      retries: 5
+
+volumes:
+  billing_postgres_data:
+  warehouse_postgres_data:
+  delivery_postgres_data:

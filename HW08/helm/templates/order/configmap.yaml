@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+data:
+  DB_HOST: {{ .Values.order.database.host | quote }}
+  DB_PORT: {{ .Values.order.database.port | quote }}
+  DB_NAME: {{ .Values.order.database.name | quote }}

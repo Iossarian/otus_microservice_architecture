@@ -1,0 +1,436 @@
+{
+  "info": {
+    "name": "Orders Test Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "host", "value": "arch.homework"},
+    {"key": "balance", "value": "100"},
+    {"key": "stock", "value": "10"},
+    {"key": "slots_count", "value": "3"}
+  ],
+  "item": [
+    {
+      "name": "1-2. Create Invalid Order (q=2)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "quantity", "value": "2"},
+            {"key": "price", "value": "10"},
+            {"key": "slot", "value": "day"}
+          ]
+        },
+        "url": {
+          "raw": "http://{{host}}/orders",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["orders"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Check Balance 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/balance",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["balance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Balance is 100', () => pm.expect(pm.response.json().balance).to.eql(100));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Check Stock 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/stock",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["stock"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Stock is 10', () => pm.expect(pm.response.json().stock).to.eql(10));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Check Slots 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/slots",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["slots"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('3 slots', () => pm.expect(pm.response.json().slots).to.have.lengthOf(3));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6-7. Create Invalid Order (q=1)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "quantity", "value": "1"},
+            {"key": "price", "value": "60"},
+            {"key": "slot", "value": "day"}
+          ]
+        },
+        "url": {
+          "raw": "http://{{host}}/orders",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["orders"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8-10. Repeat Checks",
+      "item": [
+        {
+          "name": "8. Check Balance 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/balance",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance is 100', () => pm.expect(pm.response.json().balance).to.eql(100));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "9. Check Stock 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/stock",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["stock"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stock is 10', () => pm.expect(pm.response.json().stock).to.eql(10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10. Check Slots 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/slots",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["slots"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('3 slots', () => pm.expect(pm.response.json().slots).to.have.lengthOf(3));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11-12. Create Invalid Order (q=5)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "quantity", "value": "5"},
+            {"key": "price", "value": "60"},
+            {"key": "slot", "value": "day"}
+          ]
+        },
+        "url": {
+          "raw": "http://{{host}}/orders",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["orders"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13-15. Repeat Checks Again",
+      "item": [
+        {
+          "name": "13. Check Balance 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/balance",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance is 100', () => pm.expect(pm.response.json().balance).to.eql(100));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14. Check Stock 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/stock",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["stock"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stock is 10', () => pm.expect(pm.response.json().stock).to.eql(10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15. Check Slots 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}/slots",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "path": ["slots"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('3 slots', () => pm.expect(pm.response.json().slots).to.have.lengthOf(3));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16-17. Create Valid Order",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "quantity", "value": "5"},
+            {"key": "price", "value": "60"},
+            {"key": "slot", "value": "morning"}
+          ]
+        },
+        "url": {
+          "raw": "http://{{host}}/orders",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["orders"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Check Balance After Purchase",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/balance",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["balance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Balance is 40', () => pm.expect(pm.response.json().balance).to.eql(40));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Check Stock After Purchase",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/stock",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["stock"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Stock is 5', () => pm.expect(pm.response.json().stock).to.eql(5));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Check Slots After Purchase",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/slots",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["slots"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('2 slots', () => pm.expect(pm.response.json().slots).to.have.lengthOf(2));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

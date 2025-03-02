@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator-service
+spec:
+  replicas: {{ .Values.orchestrator.replicaCount }}
+  selector:
+    matchLabels:
+      app: orchestrator-service
+  template:
+    metadata:
+      labels:
+        app: orchestrator-service
+    spec:
+      containers:
+        - name: orchestrator-service
+          image: "{{ .Values.orchestrator.image.repository }}:{{ .Values.orchestrator.image.tag }}"
+          imagePullPolicy: Always
+          command: ["/app", "rest"]
+          ports:
+            - containerPort: 8001
+          env:
+            - name: HTTP_PORT
+              value: "8001"
+            - name: BILLING_BASE_URL
+              value: "http://billing-service:8002"
+            - name: WAREHOUSE_BASE_URL
+              value: "http://warehouse-service:8003"
+            - name: DELIVERY_BASE_URL
+              value: "http://delivery-service:8004"
+
