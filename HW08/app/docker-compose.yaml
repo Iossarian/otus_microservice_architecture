@@ -1,0 +1,18 @@
+version: '3.1'
+
+services:
+  # Gateway
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: orchestrator
+    restart: always
+    environment:
+      - HTTP_PORT=8000
+      - WAREHOUSE_BASE_URL=http://warehouse-service:8001
+      - BILLING_BASE_URL=http://billing-service:8002
+      - DELIVERY_BASE_URL=http://delivery-service:8003
+    ports:
+      - '8000:8000'
+    command: [ "/app", "rest" ]
