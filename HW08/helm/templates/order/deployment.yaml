@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: {{ .Values.order.replicaCount }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: "{{ .Values.order.image.repository }}:{{ .Values.order.image.tag }}"
+          imagePullPolicy: Always
+          command: [ "/app", "rest" ]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: HTTP_PORT
+              value: "8000"
+            - name: ORCHESTRATOR_BASE_URL
+              value: "http://orchestrator-service:8001"
+            - name: BILLING_BASE_URL
+              value: "http://billing-service:8002"
+            - name: WAREHOUSE_BASE_URL
+              value: "http://warehouse-service:8003"
+            - name: DELIVERY_BASE_URL
+              value: "http://delivery-service:8004"
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: order-service-config
+                  key: DB_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: order-service-config
+                  key: DB_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: order-service-config
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-db-credentials
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-db-credentials
+                  key: password

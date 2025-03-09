@@ -1,0 +1,66 @@
+# orchestrator service
+orchestrator:
+  image:
+    repository: iossar/orchestrator08
+    tag: v2.0
+  replicaCount: 1
+
+# order service
+order:
+  image:
+    repository: iossar/order08
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: orderdb
+    user: user
+    password: password
+    host: order-postgres
+    port: 5432
+
+# billing service
+billing:
+  image:
+    repository: iossar/billing08
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: billingdb
+    user: user
+    password: password
+    host: billing-postgres
+    port: 5432
+
+# warehouse service
+warehouse:
+  image:
+    repository: iossar/warehouse08
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: warehousedb
+    user: user
+    password: password
+    host: warehouse-postgres
+    port: 5432
+
+# delivery service
+delivery:
+  image:
+    repository: iossar/delivery08
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: deliverydb
+    user: user
+    password: password
+    host: delivery-postgres
+    port: 5432
+
+ingress:
+  enabled: true
+  host: arch.homework

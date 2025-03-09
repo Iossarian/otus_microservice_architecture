@@ -1,0 +1,14 @@
+ARG BUILD_ARG_GO_VERSION=1.23
+ARG BUILD_ARG_ALPINE_VERSION=3
+FROM golang:${BUILD_ARG_GO_VERSION}-alpine AS builder
+
+WORKDIR /src
+COPY . .
+
+RUN go build -o bin/app
+
+FROM alpine:${BUILD_ARG_ALPINE_VERSION}
+WORKDIR /
+COPY --from=builder /src/bin/app .
+COPY --from=builder /src/templates ./templates
+EXPOSE 8000

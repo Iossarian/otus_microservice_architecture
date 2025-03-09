@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: delivery-postgres
+spec:
+  serviceName: "delivery-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delivery-postgres
+  template:
+    metadata:
+      labels:
+        app: delivery-postgres
+    spec:
+      containers:
+        - name: delivery-postgres
+          image: "postgres:13"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.delivery.database.name }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.delivery.database.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.delivery.database.password }}"
+          volumeMounts:
+            - name: delivery-postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: delivery-postgres-data
+          emptyDir: {}
