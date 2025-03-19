@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create order</title>
+</head>
+<body>
+<h2>Create order</h2>
+<form action="/orders" method="POST">
+    <label for="user_id">User ID:</label>
+    <input type="text" id="user_id" name="user_id" required>
+    <label for="price">Price:</label>
+    <input type="text" id="price" name="price" required>
+    <label for="idempotency_key">Key:</label>
+    <input type="text" id="idempotency_key" name="idempotency_key" required>
+    <br><br>
+    <button type="submit">Order</button>
+</form>
+</body>
+</html>

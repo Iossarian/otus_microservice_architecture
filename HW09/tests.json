@@ -1,0 +1,171 @@
+{
+  "info": {
+    "name": "Idempotency Key Test Suite",
+    "_postman_id": "00000000-0000-0000-0000-000000000000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create First Order",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const uuid = require('uuid');",
+              "pm.variables.set('idempotencyKey', uuid.v4());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "price",
+              "value": "1"
+            },
+            {
+              "key": "user_id",
+              "value": "1"
+            },
+            {
+              "key": "idempotency_key",
+              "value": "{{idempotencyKey}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "arch.homework/orders",
+          "protocol": "http",
+          "host": ["arch","homework"],
+          "path": ["orders"]
+        }
+      },
+      "response": [],
+      "script": {
+        "exec": [
+          "pm.test('Status 200 on first order', function() {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "const responseJson = pm.response.json();",
+          "pm.test('Response has order ID', function() {",
+          "    pm.expect(responseJson.id).to.be.a('number');",
+          "});",
+          "pm.variables.set('orderId', responseJson.id);"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "name": "Create Duplicate Order",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "price",
+              "value": "2"
+            },
+            {
+              "key": "user_id",
+              "value": "1"
+            },
+            {
+              "key": "idempotency_key",
+              "value": "{{idempotencyKey}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "arch.homework/orders",
+          "protocol": "http",
+          "host": ["arch","homework"],
+          "path": ["orders"]
+        }
+      },
+      "response": [],
+      "script": {
+        "exec": [
+          "pm.test('Status 409 on duplicate', function() {",
+          "    pm.response.to.have.status(409);",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "name": "Get Idempotency Key State",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "arch.homework/key/{{idempotencyKey}}",
+          "protocol": "http",
+          "host": ["arch","homework"],
+          "path": ["key", "{{idempotencyKey}}"]
+        }
+      },
+      "response": [],
+      "script": {
+        "exec": [
+          "pm.test('Status 200 on key check', function() {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "name": "Retry Order After Check",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "price",
+              "value": "2"
+            },
+            {
+              "key": "user_id",
+              "value": "1"
+            },
+            {
+              "key": "idempotency_key",
+              "value": "{{idempotencyKey}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "arch.homework/orders",
+          "protocol": "http",
+          "host": ["arch","homework"],
+          "path": ["orders"]
+        }
+      },
+      "response": [],
+      "script": {
+        "exec": [
+          "pm.test('Status 200 on retry', function() {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response matches first order ID', function() {",
+          "    const responseJson = pm.response.json();",
+          "    pm.expect(responseJson.id).to.eql(pm.variables.get('orderId'));",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}
