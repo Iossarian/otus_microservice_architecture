@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: delivery-service-config
+data:
+  DB_HOST: {{ .Values.delivery.database.host | quote }}
+  DB_PORT: {{ .Values.delivery.database.port | quote }}
+  DB_NAME: {{ .Values.delivery.database.name | quote }}

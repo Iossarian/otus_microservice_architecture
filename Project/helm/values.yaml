@@ -1,0 +1,101 @@
+# gateway service
+gateway:
+  image:
+    repository: iossar/gateway10
+    tag: v1.0
+  replicaCount: 1
+
+# orchestrator service
+orchestrator:
+  image:
+    repository: iossar/orchestrator10
+    tag: v1.0
+  replicaCount: 1
+
+# order service
+order:
+  image:
+    repository: iossar/order10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: orderdb
+    user: user
+    password: password
+    host: order-postgres
+    port: 5432
+
+# billing service
+billing:
+  image:
+    repository: iossar/billing10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: billingdb
+    user: user
+    password: password
+    host: billing-postgres
+    port: 5432
+
+# warehouse service
+warehouse:
+  image:
+    repository: iossar/warehouse10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: warehousedb
+    user: user
+    password: password
+    host: warehouse-postgres
+    port: 5432
+
+# delivery service
+delivery:
+  image:
+    repository: iossar/delivery10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: deliverydb
+    user: user
+    password: password
+    host: delivery-postgres
+    port: 5432
+
+# notification service
+notification:
+  image:
+    repository: iossar/notification10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: notificationdb
+    user: user
+    password: password
+    host: notification-postgres
+    port: 5432
+
+# user service
+user:
+  image:
+    repository: iossar/user10
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: userdb
+    user: user
+    password: password
+    host: user-postgres
+    port: 5432
+
+ingress:
+  enabled: true
+  host: arch.homework
