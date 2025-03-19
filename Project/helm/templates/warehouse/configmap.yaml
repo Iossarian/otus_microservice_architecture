@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warehouse-service-config
+data:
+  DB_HOST: {{ .Values.warehouse.database.host | quote }}
+  DB_PORT: {{ .Values.warehouse.database.port | quote }}
+  DB_NAME: {{ .Values.warehouse.database.name | quote }}

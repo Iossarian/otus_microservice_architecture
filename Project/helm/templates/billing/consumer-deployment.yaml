@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-consumer
+spec:
+  replicas: {{ .Values.billing.replicaCount }}
+  selector:
+    matchLabels:
+      app: billing-consumer
+  template:
+    metadata:
+      labels:
+        app: billing-consumer
+    spec:
+      containers:
+        - name: billing-consumer
+          image: "{{ .Values.billing.image.repository }}:{{ .Values.billing.image.tag }}"
+          imagePullPolicy: Always
+          command: [ "/bin/sh", "-c", "/app consume user-registered" ]
+          ports:
+            - containerPort: 8001
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka.project.svc.cluster.local:9092"
+            - name: HTTP_PORT
+              value: "8001"
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: billing-service-config
+                  key: DB_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: billing-service-config
+                  key: DB_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: billing-service-config
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: billing-service-db-credentials
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: billing-service-db-credentials
+                  key: password
