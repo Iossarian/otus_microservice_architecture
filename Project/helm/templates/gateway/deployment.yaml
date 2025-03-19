@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+spec:
+  replicas: {{ .Values.gateway.replicaCount }}
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: "{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag }}"
+          imagePullPolicy: Always
+          command: ["/app", "rest"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: HTTP_PORT
+              value: "8000"
+            - name: BILLING_BASE_URL
+              value: "http://billing-service:8001"
+            - name: USER_BASE_URL
+              value: "http://user-service:8002"
+            - name: WAREHOUSE_BASE_URL
+              value: "http://warehouse-service:8003"
+            - name: DELIVERY_BASE_URL
+              value: "http://delivery-service:8004"
+            - name: ORDER_BASE_URL
+              value: "http://order-service:8005"
+            - name: NOTIFICATION_BASE_URL
+              value: "http://notification-service:8006"
+

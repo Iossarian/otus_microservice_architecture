@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: warehouse-postgres
+spec:
+  serviceName: "warehouse-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: warehouse-postgres
+  template:
+    metadata:
+      labels:
+        app: warehouse-postgres
+    spec:
+      containers:
+        - name: warehouse-postgres
+          image: "postgres:13"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.warehouse.database.name }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.warehouse.database.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.warehouse.database.password }}"
+          volumeMounts:
+            - name: warehouse-postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: warehouse-postgres-data
+          emptyDir: {}
