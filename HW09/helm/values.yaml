@@ -1,0 +1,17 @@
+# order service
+order:
+  image:
+    repository: iossar/order09
+    tag: v1.0
+  replicaCount: 1
+
+  database:
+    name: orderdb
+    user: user
+    password: password
+    host: order-postgres
+    port: 5432
+
+ingress:
+  enabled: true
+  host: arch.homework
