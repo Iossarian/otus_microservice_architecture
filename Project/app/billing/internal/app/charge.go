@@ -36,7 +36,7 @@ func (h *Handler) Charge(ctx echo.Context) error {
 
 	newBalance := currentBalance - req.Amount
 
-	_, err = h.db.Exec("UPDATE account SET balance = $1, updated_at = $2 WHERE id = $3",
+	_, err = h.db.Exec("UPDATE account SET balance = $1, updated_at = $2 WHERE user_id = $3",
 		newBalance,
 		time.Now(),
 		req.UserID,

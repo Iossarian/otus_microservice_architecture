@@ -45,14 +45,14 @@ func (h *Handler) Refund(ctx echo.Context) error {
 
 	var currentBalance float64
 
-	err = h.db.QueryRow("SELECT balance FROM account WHERE id = $1", req.UserID).Scan(&currentBalance)
+	err = h.db.QueryRow("SELECT balance FROM account WHERE user_id = $1", req.UserID).Scan(&currentBalance)
 	if err != nil {
 		return internalError(err)
 	}
 
 	newBalance := currentBalance + req.Amount
 
-	_, err = h.db.Exec("UPDATE account SET balance = $1, updated_at = $2 WHERE id = $3",
+	_, err = h.db.Exec("UPDATE account SET balance = $1, updated_at = $2 WHERE user_id = $3",
 		newBalance,
 		time.Now(),
 		req.UserID,

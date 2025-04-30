@@ -40,6 +40,11 @@ func (h *Handler) Create(ctx echo.Context) error {
 		Transaction:  h.delivery.Reserve,
 		Compensation: h.delivery.Cancel,
 	})
+	workflow.AddStep(createorder.SagaStep{
+		Name:         "create",
+		Transaction:  h.order.Create,
+		Compensation: h.order.Cancel,
+	})
 
 	if err := workflow.Execute(ctx, createorder.Request{
 		UUID:         uuid.New(),

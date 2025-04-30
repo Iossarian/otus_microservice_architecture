@@ -30,7 +30,7 @@ order:
 billing:
   image:
     repository: iossar/billing10
-    tag: v1.0
+    tag: v3.0
   replicaCount: 1
 
   database:
